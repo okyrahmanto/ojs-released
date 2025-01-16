@@ -1,0 +1,97 @@
+dist: bionic
+
+env:
+  global:
+  # Used for saving generated test datasets. See Notion for details.
+  - secure: FTT6C4vhk88L1RKHmUnbTdXdTyjkhoAhtXwYGAvkrrTngU1uJMZeoFeHLqVf/uxQuNssOrEJsQWGrka5OEd1FAAxUuqTmytxRMuz9A6Z4qp5DiMIDyCB9WF5AdY1cb3XQw5GiPc2BWrmBxxRIKporkaND0UBRmyeHDvppjn0uME=
+  - APPLICATION=ojs
+
+# Configure the build matrix
+matrix:
+  include:
+  # Validation
+  - env: TEST=validation
+    php: 7.3
+  # PostgreSQL / various PHP
+  - env: TEST=pgsql
+    php: 7.3
+  - env: TEST=pgsql
+    php: 7.4
+  - env:
+    - TEST: pgsql
+    - SAVE_BUILD: true
+    php: 8.0
+  # MySQL / various PHP
+  - env: TEST=mysql
+    php: 7.3
+  - env: TEST=mysql
+    php: 7.4
+  - env:
+    - TEST: mysql
+    - SAVE_BUILD: true
+    php: 8.0
+  # Path info disabled DISABLED pending a fix of pkp/pkp-lib#4414
+  # - env: TEST=mysql DISABLE_PATH_INFO=1
+  #   php: 7.2
+language: php
+python:
+  - 3.3 # Required by Javascript linter/builder
+git:
+  # Inhibit automatic submodule checkout (see below)
+  submodules: false
+cache:
+  npm: true
+  directories:
+    - $HOME/.composer/cache
+    - $HOME/.cache
+addons:
+  chrome: beta
+  postgresql: "9.5"
+  apt:
+    update: true
+    packages:
+      - libgconf-2-4
+before_install:
+  # Check out submodules (this script checks out developer forks if necessary)
+  - ./tools/startSubmodulesTRAVIS.sh
+
+  # Update to latest stable version of npm
+  - npm i g -npm
+
+  - |
+    if [[ "$TEST" != "validation" ]]; then
+      # Prepare for unit and integration tests.
+
+      # Prepare the server environment
+      ./lib/pkp/tools/travis/prepare-webserver.sh
+
+      # Prepare the local codebase
+      ./lib/pkp/tools/travis/install-composer-dependencies.sh
+      npm install && npm run build
+    else
+      # Prepare for validation tests.
+      npm install
+      ./lib/pkp/tools/travis/install-linter.sh
+    fi
+
+script:
+  - |
+    if [[ "$TEST" != "validation" ]]; then
+      # Run the unit and integration tests.
+      source ./lib/pkp/tools/travis/prepare-tests.sh
+      ./lib/pkp/tools/travis/run-tests.sh
+    else
+      # Run the validation tests.
+      ./lib/pkp/tools/travis/validate-xml.sh
+      ./lib/pkp/tools/buildjs.sh -n
+      ./lib/pkp/tools/checkHelp.sh
+      ./lib/pkp/tools/travis/validate-json.sh
+      npm run lint
+    fi
+
+after_script:
+  - cat error.log
+
+after_failure:
+  - sudo apt-get install sharutils
+  - tar cz cypress/screenshots | uuencode /dev/stdout
