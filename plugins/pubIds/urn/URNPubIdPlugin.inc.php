@@ -13,6 +13,7 @@
  * @brief URN plugin class
  */
 
+
 import('classes.plugins.PubIdPlugin');
 
 class URNPubIdPlugin extends PubIdPlugin {
@@ -219,7 +220,7 @@ class URNPubIdPlugin extends PubIdPlugin {
 	function getSuffixPatternsFieldNames() {
 		return  array(
 			'Issue' => 'urnIssueSuffixPattern',
-			'Publication' => 'urnPublicationSuffixPattern',
+			'Submission' => 'urnPublicationSuffixPattern',
 			'Representation' => 'urnRepresentationSuffixPattern',
 		);
 	}
@@ -235,7 +236,7 @@ class URNPubIdPlugin extends PubIdPlugin {
 	 * @copydoc PKPPubIdPlugin::isObjectTypeEnabled()
 	 */
 	function isObjectTypeEnabled($pubObjectType, $contextId) {
-		return (boolean) $this->getSetting($contextId, "enable{$pubObjectType}URN");
+		return (boolean) $this->getSetting($contextId, "enable${pubObjectType}URN");
 	}
 
 	/**
@@ -246,13 +247,13 @@ class URNPubIdPlugin extends PubIdPlugin {
 	}
 
 	/**
-	 * Add URN to publication, issue or galley properties
+	 * Add URN to submission, issue or galley properties
 	 *
 	 * @param $hookName string <Object>::getProperties::summaryProperties or
 	 *  <Object>::getProperties::fullProperties
 	 * @param $args array [
 	 * 		@option $props array Existing properties
-	 * 		@option $object Publication|Issue|Galley
+	 * 		@option $object Submission|Issue|Galley
 	 * 		@option $args array Request args
 	 * ]
 	 *
@@ -265,12 +266,12 @@ class URNPubIdPlugin extends PubIdPlugin {
 	}
 
 	/**
-	 * Add URN publication, issue or galley values
+	 * Add URN submission, issue or galley values
 	 *
 	 * @param $hookName string <Object>::getProperties::values
 	 * @param $args array [
 	 * 		@option $values array Key/value store of property values
-	 * 		@option $object Publication|Issue|Galley
+	 * 		@option $object Submission|Issue|Galley
 	 * 		@option $props array Requested properties
 	 * 		@option $args array Request args
 	 * ]
@@ -361,13 +362,6 @@ class URNPubIdPlugin extends PubIdPlugin {
 			$pattern = $this->getSetting($form->submissionContext->getId(), 'urnPublicationSuffixPattern');
 		}
 
-		$appyCheckNumber = $this->getSetting($form->submissionContext->getId(), 'urnCheckNo');
-
-		if ($appyCheckNumber) {
-			// Load the checkNumber.js file that is required for URN fields
-			$this->addJavaScript(Application::get()->getRequest(), TemplateManager::getManager(Application::get()->getRequest()));
-		}
-
 		// If a pattern exists, use a DOI-like field to generate the URN
 		if ($pattern) {
 			$fieldData = [
@@ -377,9 +371,8 @@ class URNPubIdPlugin extends PubIdPlugin {
 				'pattern' => $pattern,
 				'contextInitials' => $form->submissionContext->getData('acronym', $form->submissionContext->getData('primaryLocale')) ?? '',
 				'submissionId' => $form->publication->getData('submissionId'),
-				'assignIdLabel' => __('plugins.pubIds.urn.editor.urn.assignUrn'),
-				'clearIdLabel' => __('plugins.pubIds.urn.editor.clearObjectsURN'),
-				'applyCheckNumber' => $appyCheckNumber,
+				'assignId' => __('plugins.pubIds.urn.editor.urn.assignUrn'),
+				'clearId' => __('plugins.pubIds.urn.editor.clearObjectsURN'),
 			];
 			if ($form->publication->getData('pub-id::publisher-id')) {
 				$fieldData['publisherId'] = $form->publication->getData('pub-id::publisher-id');
@@ -400,19 +393,19 @@ class URNPubIdPlugin extends PubIdPlugin {
 			} else  {
 				$fieldData['missingPartsLabel'] = __('plugins.pubIds.urn.editor.missingParts');
 			}
-			$this->import('classes.form.FieldPubIdUrn');
-			$form->addField(new \Plugins\Generic\URN\FieldPubIdUrn('pub-id::other::urn', $fieldData));
+			$form->addField(new \PKP\components\forms\FieldPubId('pub-id::other::urn', $fieldData));
 
 		// Otherwise add a field for manual entry that includes a button to generate
 		// the check number
 		} else {
-			$this->import('classes.form.FieldTextUrn');
-			$form->addField(new \Plugins\Generic\URN\FieldTextUrn('pub-id::other::urn', [
+			// Load the checkNumber.js file that is required for this field
+			$this->addJavaScript(Application::get()->getRequest(), TemplateManager::getManager(Application::get()->getRequest()));
+
+			$this->import('classes.form.FieldUrn');
+			$form->addField(new \Plugins\Generic\URN\FieldUrn('pub-id::other::urn', [
 				'label' => __('plugins.pubIds.urn.displayName'),
 				'description' => __('plugins.pubIds.urn.editor.urn.description', ['prefix' => $prefix]),
 				'value' => $form->publication->getData('pub-id::other::urn'),
-				'urnPrefix' => $prefix,
-				'applyCheckNumber' => $appyCheckNumber,
 			]));
 		}
 	}
@@ -487,7 +480,7 @@ class URNPubIdPlugin extends PubIdPlugin {
 	}
 
 	/**
-	 * Load the FieldTextUrn or FieldPubIdUrn Vue.js component into Vue.js
+	 * Load the FieldUrn Vue.js component into Vue.js
 	 *
 	 * @param string $hookName
 	 * @param array $args
@@ -500,46 +493,33 @@ class URNPubIdPlugin extends PubIdPlugin {
 			return;
 		}
 
-		$context = Application::get()->getRequest()->getContext();
-		$suffixType = $this->getSetting($context->getId(), 'urnSuffix');
-		if ($suffixType === 'default' || $suffixType === 'pattern') {
-			$templateMgr->addJavaScript(
-				'field-pub-id-urn-component',
-				Application::get()->getRequest()->getBaseUrl() . '/' . $this->getPluginPath() . '/js/FieldPubIdUrn.js',
-				[
-					'contexts' => 'backend',
-					'priority' => STYLE_SEQUENCE_LAST,
-				]
-			);
-		} else {
-			$templateMgr->addJavaScript(
-				'field-text-urn-component',
-				Application::get()->getRequest()->getBaseUrl() . '/' . $this->getPluginPath() . '/js/FieldTextUrn.js',
-				[
-					'contexts' => 'backend',
-					'priority' => STYLE_SEQUENCE_LAST,
-				]
-			);
+		$templateMgr->addJavaScript(
+			'urn-field-component',
+			Application::get()->getRequest()->getBaseUrl() . '/' . $this->getPluginPath() . '/js/FieldUrn.js',
+			[
+				'contexts' => 'backend',
+				'priority' => STYLE_SEQUENCE_LAST,
+			]
+		);
 
-			$templateMgr->addStyleSheet(
-				'field-text-urn-component',
-				'
-					.pkpFormField--urn__input {
-						display: inline-block;
-					}
+		$templateMgr->addStyleSheet(
+			'urn-field-component',
+			'
+				.pkpFormField--urn__input {
+					display: inline-block;
+				}
 
-					.pkpFormField--urn__button {
-						margin-left: 0.25rem;
-						height: 2.5rem; // Match input height
-					}
-				',
-				[
-					'contexts' => 'backend',
-					'inline' => true,
-					'priority' => STYLE_SEQUENCE_LAST,
-				]
-			);
-		}
+				.pkpFormField--urn__button {
+					margin-left: 0.25rem;
+					height: 2.5rem; // Match input height
+				}
+			',
+			[
+				'contexts' => 'backend',
+				'inline' => true,
+				'priority' => STYLE_SEQUENCE_LAST,
+			]
+		);
 	}
 
 	//

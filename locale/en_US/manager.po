@@ -661,7 +661,7 @@ msgid "manager.setup.plnPluginArchiving"
 msgstr "PKP Preservation Network (PN)"
 
 msgid "manager.setup.plnPluginNotInstalled"
-msgstr "The PKP Preservation Network (PN) provides free preservation services for any OJS journal that meets a few basic criteria. To archive your journal in the PN, ask your administrator to install the PKP|PN Plugin from the Plugin Gallery."
+msgstr "The PKP Preservation Network (PN) provides free preservation services for any OJS journal that meets a few basic criteria. The PKP PN plugin for OJS 3 is currently in development and will be available in the plugin gallery soon."
 
 msgid "manager.setup.otherLockss"
 msgstr "LOCKSS and CLOCKSS"
@@ -829,7 +829,7 @@ msgid "manager.setup.reviewOptions.reviewerAccessKeysEnabled"
 msgstr "One-click Reviewer Access"
 
 msgid "manager.setup.reviewOptions.reviewerAccessKeysEnabled.description"
-msgstr "Reviewers can be sent a secure link in the email invitation, which will log them in automatically when they click the link."
+msgstr "Reviewers can be sent a secure link in the email invitation, which will allow them to access the review without logging in. Access to other pages requires them to log in."
 
 msgid "manager.setup.reviewOptions.reviewerAccessKeysEnabled.label"
 msgstr "Include a secure link in the email invitation to reviewers."
@@ -904,7 +904,7 @@ msgid "manager.setup.submissions.description"
 msgstr "Author guidelines, copyright, and indexing (including registration)."
 
 msgid "manager.setup.disableSubmissions.description"
-msgstr "Prevent users from submitting new articles to the journal. Submissions can be disabled for individual journal sections on the <a href=\"{$url}\">journal sections</a> settings page."
+msgstr "Prevent users from submitting new articles to the journal. Submissions can be disabled for individual journal sections on the <a href="{$url}">journal sections</a> settings page."
 
 msgid "manager.setup.disableSubmissions.notAccepting"
 msgstr "This journal is not accepting submissions at this time. Visit the workflow settings to allow submissions."
@@ -1687,18 +1687,6 @@ msgstr "The specified journal path, \"{$journalPath}\", does not exist."
 
 msgid "plugins.importexport.common.error.unknownObjects"
 msgstr "The specified objects could not be found."
-
-msgid "plugins.importexport.common.error.import.issueGalleyFileMissing"
-msgstr "An issue galley could not be imported, its file is missing."
-
-msgid "plugins.importexport.common.error.issueGalleyFileMissing"
-msgstr "The issue galley {$id} could not be exported, its file was not found at the path \"{$path}\"."
-
-msgid "plugins.importexport.common.error.publicationCoverImageMissing"
-msgstr "The cover image of the publication {$id} was not exported, its file was not found at the path \"{$path}\"."
-
-msgid "plugins.importexport.common.error.issueCoverImageMissing"
-msgstr "The cover image of the issue {$id} was not exported, its file was not found at the path \"{$path}\"."
 
 msgid "manager.setup.notifications.copyPrimaryContact"
 msgstr "Send a copy to the primary contact, identified in the Journal Settings."

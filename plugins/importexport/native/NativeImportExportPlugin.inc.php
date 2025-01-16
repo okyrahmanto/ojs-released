@@ -180,7 +180,7 @@ class NativeImportExportPlugin extends ImportExportPlugin {
 						$foundErrors = true;
 					}
 				}
-				// If there are any data or validation errors
+				// If there are any data or validataion errors
 				// delete imported objects.
 				if ($foundErrors || !empty($validationErrors)) {
 					// remove all imported issues and sumissions
@@ -375,22 +375,6 @@ class NativeImportExportPlugin extends ImportExportPlugin {
 					return;
 				}
 
-				$request = Application::get()->getRequest();
-				// Set global user
-				if (!$request->getUser()) {
-					Registry::set('user', $user);
-				}
-				// Set global context
-				if (!$request->getContext()) {
-					HookRegistry::register('Router::getRequestedContextPaths', function (string $hook, array $args) use ($journal): bool {
-						$args[0] = [$journal->getPath()];
-						return false;
-					});
-					$router = new PageRouter();
-					$router->setApplication(Application::get());
-					$request->setRouter($router);
-				}
-
 				$filter = 'native-xml=>issue';
 				// is this articles import:
 				$xmlString = file_get_contents($xmlFile);
@@ -446,17 +430,12 @@ class NativeImportExportPlugin extends ImportExportPlugin {
 						$foundErrors = true;
 					}
 				}
-				// If there are any data or validation errors
+				// If there are any data or validataion errors
 				// delete imported objects.
 				if ($foundErrors || !empty($validationErrors)) {
-					// remove all imported issues and submissions
+					// remove all imported issues and sumissions
 					foreach (array_keys($errorTypes) as $assocType) {
 						$deployment->removeImportedObjects($assocType);
-					}
-					echo __('plugins.importexport.common.validationErrors') . "\n";
-					$i = 0;
-					foreach ($validationErrors as $validationError) {
-						echo ++$i . '. Line: ' . $validationError->line . ' Column: ' . $validationError->column . ' > ' . $validationError->message . "\n";
 					}
 				}
 				return;

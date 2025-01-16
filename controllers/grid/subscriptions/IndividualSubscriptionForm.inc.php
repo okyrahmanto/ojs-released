@@ -87,7 +87,7 @@ class IndividualSubscriptionForm extends SubscriptionForm {
 		}
 
 		// Send notification email
-		if ($this->getData('notifyEmail')) {
+		if ($this->_data['notifyEmail'] == 1) {
 			$mail = $this->_prepareNotificationEmail('SUBSCRIPTION_NOTIFY');
 			if (!$mail->send()) {
 				import('classes.notification.NotificationManager');

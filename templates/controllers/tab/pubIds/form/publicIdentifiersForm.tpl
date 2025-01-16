@@ -43,16 +43,16 @@
 {*include file="common/formErrors.tpl"*}
 {if $enablePublisherId}
 	{fbvFormSection}
-		{fbvElement type="text" label="submission.publisherId" id="publisherId" name="publisherId" value=$publisherId size=$fbvStyles.size.MEDIUM disabled=$formDisabled}
+		{fbvElement type="text" label="submission.publisherId" id="publisherId" name="publisherId" value=$publisherId size=$fbvStyles.size.MEDIUM}
 	{/fbvFormSection}
 {/if}
 
 {foreach from=$pubIdPlugins item=pubIdPlugin}
 	{assign var=pubIdMetadataFile value=$pubIdPlugin->getPubIdMetadataFile()}
 	{assign var=canBeAssigned value=$pubIdPlugin->canBeAssigned($pubObject)}
-	{include file="$pubIdMetadataFile" pubObject=$pubObject canBeAssigned=$canBeAssigned formDisabled=$formDisabled}
+	{include file="$pubIdMetadataFile" pubObject=$pubObject canBeAssigned=$canBeAssigned}
 {/foreach}
 {call_hook name="Templates::Controllers::Tab::PubIds::Form::PublicIdentifiersForm"}
-{fbvFormButtons id="publicIdentifiersFormSubmit" submitText="common.save" submitDisabled=$formDisabled hideCancel=$formDisabled}
+{fbvFormButtons id="publicIdentifiersFormSubmit" submitText="common.save"}
 
 </form>

@@ -16,7 +16,6 @@
 namespace APP\components\forms\publication;
 use \PKP\components\forms\FormComponent;
 use \PKP\components\forms\FieldHTML;
-use function PHP81_BC\strftime;
 
 define('FORM_PUBLISH', 'publish');
 

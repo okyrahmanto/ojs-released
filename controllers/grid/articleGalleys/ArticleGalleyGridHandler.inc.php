@@ -223,9 +223,10 @@ class ArticleGalleyGridHandler extends GridHandler {
 	 * @return JSONMessage JSON object
 	 */
 	function identifiers($args, $request) {
-		$representation = $this->getGalley();
+		$representationDao = Application::getRepresentationDAO();
+		$representation = $representationDao->getById($request->getUserVar('representationId'));
 		import('controllers.tab.pubIds.form.PublicIdentifiersForm');
-		$form = new PublicIdentifiersForm($representation, null, null, $this->canEdit());
+		$form = new PublicIdentifiersForm($representation);
 		$form->initData();
 		return new JSONMessage(true, $form->fetch($request));
 	}
@@ -237,9 +238,10 @@ class ArticleGalleyGridHandler extends GridHandler {
 	 * @return JSONMessage JSON object
 	 */
 	function updateIdentifiers($args, $request) {
-		$representation = $this->getGalley();
+		$representationDao = Application::getRepresentationDAO();
+		$representation = $representationDao->getById($request->getUserVar('representationId'));
 		import('controllers.tab.pubIds.form.PublicIdentifiersForm');
-		$form = new PublicIdentifiersForm($representation, null, array_merge($this->getRequestArgs(), ['representationId' => $representation->getId()]), $this->canEdit());
+		$form = new PublicIdentifiersForm($representation, null, array_merge($this->getRequestArgs(), ['representationId' => $representation->getId()]));
 		$form->readInputData();
 		if ($form->validate()) {
 			$form->execute();
@@ -259,9 +261,10 @@ class ArticleGalleyGridHandler extends GridHandler {
 		if (!$request->checkCSRF()) return new JSONMessage(false);
 
 		$submission = $this->getSubmission();
-		$representation = $this->getGalley();
+		$representationDao = Application::getRepresentationDAO();
+		$representation = $representationDao->getById($request->getUserVar('representationId'));
 		import('controllers.tab.pubIds.form.PublicIdentifiersForm');
-		$form = new PublicIdentifiersForm($representation, null, null, $this->canEdit());
+		$form = new PublicIdentifiersForm($representation);
 		$form->clearPubId($request->getUserVar('pubIdPlugIn'));
 		return new JSONMessage(true);
 	}
@@ -358,8 +361,7 @@ class ArticleGalleyGridHandler extends GridHandler {
 			$request,
 			$this->getSubmission(),
 			$this->getPublication(),
-			$this->getGalley(),
-			$this->canEdit()
+			$this->getGalley()
 		);
 		$galleyForm->initData();
 		return new JSONMessage(true, $galleyForm->fetch($request));
@@ -375,7 +377,7 @@ class ArticleGalleyGridHandler extends GridHandler {
 		$galley = $this->getGalley();
 
 		import('controllers.grid.articleGalleys.form.ArticleGalleyForm');
-		$galleyForm = new ArticleGalleyForm($request, $this->getSubmission(), $this->getPublication(), $galley, $this->canEdit());
+		$galleyForm = new ArticleGalleyForm($request, $this->getSubmission(), $this->getPublication(), $galley);
 		$galleyForm->readInputData();
 
 		if ($galleyForm->validate()) {

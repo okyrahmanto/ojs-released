@@ -75,7 +75,7 @@ class ReviewerHandler extends PKPReviewerHandler {
 		// Validate the access key
 		$context = $request->getContext();
 		$accessKeyManager = new AccessKeyManager();
-		$accessKeyHash = $accessKeyManager->generateKeyHash($accessKeyCode);
+		$accessKeyHash = AccessKeyManager::generateKeyHash($accessKeyCode);
 		$accessKey = $accessKeyManager->validateKey(
 			$context->getId(),
 			$reviewerSubmission->getReviewerId(),

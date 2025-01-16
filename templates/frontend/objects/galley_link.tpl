@@ -41,7 +41,7 @@
 	{assign var="page" value="article"}
 	{assign var="parentId" value=$parent->getBestId()}
 	{* Get a versioned link if we have an older publication *}
-	{if $publication && $publication->getId() !== $parent->getData('currentPublicationId')}
+	{if $publication && $publication->getId() !== $parent->getCurrentPublication()->getId()}
 		{assign var="path" value=$parentId|to_array:"version":$publication->getId():$galley->getBestGalleyId()}
 	{else}
 		{assign var="path" value=$parentId|to_array:$galley->getBestGalleyId()}

@@ -620,7 +620,7 @@ class InstitutionalSubscriptionDAO extends SubscriptionDAO {
 
 		$returner = true;
 
-		foreach ($ipRanges as $curIPString) {
+		while (list(, $curIPString) = each($ipRanges)) {
 			$ipStart = null;
 			$ipEnd = null;
 

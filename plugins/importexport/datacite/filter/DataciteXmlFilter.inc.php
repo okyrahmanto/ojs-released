@@ -30,7 +30,6 @@ define('DATACITE_IDTYPE_PROPRIETARY', 'publisherId');
 define('DATACITE_IDTYPE_EISSN', 'EISSN');
 define('DATACITE_IDTYPE_ISSN', 'ISSN');
 define('DATACITE_IDTYPE_DOI', 'DOI');
-define('DATACITE_IDTYPE_URL', 'URL');
 
 // Relation types
 define('DATACITE_RELTYPE_ISVARIANTFORMOF', 'IsVariantFormOf');
@@ -38,7 +37,6 @@ define('DATACITE_RELTYPE_HASPART', 'HasPart');
 define('DATACITE_RELTYPE_ISPARTOF', 'IsPartOf');
 define('DATACITE_RELTYPE_ISPREVIOUSVERSIONOF', 'IsPreviousVersionOf');
 define('DATACITE_RELTYPE_ISNEWVERSIONOF', 'IsNewVersionOf');
-define('DATACITE_RELTYPE_ISPUBLISHEDIN', 'IsPublishedIn');
 
 // Description types
 define('DATACITE_DESCTYPE_ABSTRACT', 'Abstract');
@@ -171,8 +169,8 @@ class DataciteXmlFilter extends NativeExportFilter {
 			$subjects = (array) $this->getPrimaryTranslation($galleyFile->getData('subject'), $objectLocalePrecedence);
 		} elseif (!empty($article) && !empty($publication)) {
 			$subjects = array_merge(
-				(array) $this->getPrimaryTranslation($publication->getData('keywords'), $objectLocalePrecedence),
-				(array) $this->getPrimaryTranslation($publication->getData('subjects'), $objectLocalePrecedence)
+				$this->getPrimaryTranslation($publication->getData('keywords'), $objectLocalePrecedence),
+				$this->getPrimaryTranslation($publication->getData('subjects'), $objectLocalePrecedence)
 			);
 		}
 		if (!empty($subjects)) {
@@ -217,11 +215,6 @@ class DataciteXmlFilter extends NativeExportFilter {
 		// Descriptions
 		$descriptionsNode = $this->createDescriptionsNode($doc, $issue, $article, $publication, $galley, $galleyFile, $objectLocalePrecedence);
 		if ($descriptionsNode) $rootNode->appendChild($descriptionsNode);
-		// relatedItems
-		$relatedItemsNode = $this->createRelatedItemsNode($doc, $issue, $article, $publication, $publisher, $objectLocalePrecedence);
-		if ($relatedItemsNode) {
-			$rootNode->appendChild($relatedItemsNode);
-		}
 
 		return $doc;
 	}
@@ -261,12 +254,7 @@ class DataciteXmlFilter extends NativeExportFilter {
 				// Check whether we have a supp file creator set...
 				$creator = $this->getPrimaryTranslation($galleyFile->getData('creator'), $objectLocalePrecedence);
 				if (!empty($creator)) {
-					$creators[] = [
-						'name' => $creator,
-						'orcid' => null,
-						'affiliation' => null,
-						'ror' => null
-					];
+					$creators[] = $creator;
 					break;
 				}
 				// ...if not then go on by retrieving the publication
@@ -276,45 +264,18 @@ class DataciteXmlFilter extends NativeExportFilter {
 				$authors = $publication->getData('authors');
 				assert(!empty($authors));
 				foreach ($authors as $author) { /* @var $author Author */
-					$creators[] = [
-						'name' => $author->getFullName(false, true),
-						'orcid' => $author->getOrcid(),
-						'affiliation' => $author->getLocalizedData('affiliation', $publication->getData('locale')),
-						'ror' => $author->getData('rorId') ?? null
-					];
+					$creators[] = $author->getFullName(false, true);
 				}
 				break;
 			case isset($issue):
-				$creators[] = [
-					'name' => $publisher,
-					'orcid' => null,
-					'affiliation' => null,
-					'ror' => null
-				];
+				$creators[] = $publisher;
 				break;
 		}
 		assert(count($creators) >= 1);
 		$creatorsNode = $doc->createElementNS($deployment->getNamespace(), 'creators');
 		foreach ($creators as $creator) {
 			$creatorNode = $doc->createElementNS($deployment->getNamespace(), 'creator');
-			$creatorNode->appendChild($node = $doc->createElementNS($deployment->getNamespace(), 'creatorName', htmlspecialchars($creator['name'], ENT_COMPAT, 'UTF-8')));
-			if ($creator['orcid']) {
-				$node = $doc->createElementNS($deployment->getNamespace(), 'nameIdentifier');
-				$node->appendChild($doc->createTextNode($creator['orcid']));
-				$node->setAttribute('schemeURI', 'http://orcid.org/');
-				$node->setAttribute('nameIdentifierScheme', 'ORCID');
-				$creatorNode->appendChild($node);
-			}
-			if ($creator['affiliation']) {
-				$node = $doc->createElementNS($deployment->getNamespace(), 'affiliation');
-				if ($creator['ror']) {
-					$node->setAttribute('affiliationIdentifier', $creator['ror']);
-					$node->setAttribute('affiliationIdentifierScheme', 'ROR');
-					$node->setAttribute('schemeURI', 'https://ror.org');
-				}
-				$node->appendChild($doc->createTextNode($creator['affiliation']));
-				$creatorNode->appendChild($node);
-			}
+			$creatorNode->appendChild($node = $doc->createElementNS($deployment->getNamespace(), 'creatorName', htmlspecialchars($creator, ENT_COMPAT, 'UTF-8')));
 			$creatorsNode->appendChild($creatorNode);
 		}
 		return $creatorsNode;
@@ -480,11 +441,7 @@ class DataciteXmlFilter extends NativeExportFilter {
 			default:
 				assert(false);
 		}
-		if ($resourceType == 'Article') {
-			// Create the resourceType element.
-			$resourceTypeNode = $doc->createElementNS($deployment->getNamespace(), 'resourceType');
-			$resourceTypeNode->setAttribute('resourceTypeGeneral', 'JournalArticle');
-		} elseif  ($resourceType == 'Journal Issue') {
+		if (!empty($resourceType)) {
 			// Create the resourceType element.
 			$resourceTypeNode = $doc->createElementNS($deployment->getNamespace(), 'resourceType', $resourceType);
 			$resourceTypeNode->setAttribute('resourceTypeGeneral', 'Text');
@@ -614,9 +571,13 @@ class DataciteXmlFilter extends NativeExportFilter {
 		switch (true) {
 			case isset($galley):
 				// The galley represents the article.
+				$pages = $publication->getData('pages');
 				$path = $galleyFile->getData('path');
 				$size = Services::get('file')->fs->getSize($path);
 				$sizes[] = Services::get('file')->getNiceFileSize($size);
+				break;
+			case isset($article):
+				$pages = $publication->getData('pages');
 				break;
 			case isset($issue):
 				$issueGalleyDao = DAORegistry::getDAO('IssueGalleyDAO'); /* @var $issueGalleyDao IssueGalleyDAO */
@@ -629,6 +590,10 @@ class DataciteXmlFilter extends NativeExportFilter {
 				break;
 			default:
 				assert(false);
+		}
+		if (!empty($pages)) {
+			AppLocale::requireComponents(array(LOCALE_COMPONENT_APP_EDITOR));
+			$sizes[] = $pages . ' ' . __('editor.issues.pages');
 		}
 		$sizesNode = null;
 		if (!empty($sizes)) {
@@ -675,6 +640,10 @@ class DataciteXmlFilter extends NativeExportFilter {
 			default:
 				assert(false);
 		}
+		if (isset($article)) {
+			// Articles and galleys.
+			$descriptions[DATACITE_DESCTYPE_SERIESINFO] = $this->getIssueInformation($issue, $objectLocalePrecedence);
+		}
 		$descriptionsNode = null;
 		if (!empty($descriptions)) {
 			$descriptionsNode = $doc->createElementNS($deployment->getNamespace(), 'descriptions');
@@ -686,92 +655,6 @@ class DataciteXmlFilter extends NativeExportFilter {
 		return $descriptionsNode;
 	}
 
-	/**
-	 * Create related items node.
-	 *
-	 * @param \DOMDocument $doc
-	 * @param Issue $issue
-	 * @param Submission $article
-	 * @param Publication $publication
-	 * @param string $publisher
-	 * @param array $objectLocalePrecedence
-	 *
-	 * @return ?\DOMElement Can be null if a size cannot be identified for the given object.
-	 */
-	public function createRelatedItemsNode($doc, $issue, $article, $publication, $publisher, $objectLocalePrecedence)
-	{
-		/** @var DataciteExportDeployment */
-		$deployment = $this->getDeployment();
-		$context = $deployment->getContext();
-		$request = Application::get()->getRequest();
-
-		$relatedItemsNode = null;
-		if (isset($article)) {
-			$relatedItemsNode = $doc->createElementNS($deployment->getNamespace(), 'relatedItems');
-
-			$relatedItemNode = $doc->createElementNS($deployment->getNamespace(), 'relatedItem');
-			$relatedItemNode->setAttribute('relationType', DATACITE_RELTYPE_ISPUBLISHEDIN);
-			$relatedItemNode->setAttribute('relatedItemType', 'Journal');
-
-			if (null !== $context->getData('onlineIssn')) {
-				$relatedItemIdentifierNode = $doc->createElementNS($deployment->getNamespace(), 'relatedItemIdentifier', $context->getData('onlineIssn'));
-				$relatedItemIdentifierNode->setAttribute('relatedItemIdentifierType', DATACITE_IDTYPE_EISSN);
-			} elseif (null !== $context->getData('printIssn')) {
-				$relatedItemIdentifierNode = $doc->createElementNS($deployment->getNamespace(), 'relatedItemIdentifier', $context->getData('printIssn'));
-				$relatedItemIdentifierNode->setAttribute('relatedItemIdentifierType', DATACITE_IDTYPE_ISSN);
-			} else {
-				$contextUrl = $request->getDispatcher()->url(
-					$request,
-					ROUTE_PAGE,
-					$context->getPath()
-				);
-				$relatedItemIdentifierNode = $doc->createElementNS($deployment->getNamespace(), 'relatedItemIdentifier', $contextUrl);
-				$relatedItemIdentifierNode->setAttribute('relatedItemIdentifierType', DATACITE_IDTYPE_URL);
-			}
-			$relatedItemNode->appendChild($relatedItemIdentifierNode);
-
-			$titlesNode = $doc->createElementNS($deployment->getNamespace(), 'titles');
-			$titleNode = $doc->createElementNS($deployment->getNamespace(), 'title');
-			$titleNode->appendChild($doc->createTextNode($publisher));
-			$titlesNode->appendChild($titleNode);
-			$relatedItemNode->appendChild($titlesNode);
-
-			if ($issue->getVolume()) {
-				$relatedItemNode->appendChild($node = $doc->createElementNS($deployment->getNamespace(), 'volume', $issue->getVolume()));
-			}
-
-			$issueNode = $doc->createElementNS($deployment->getNamespace(), 'issue');
-			if ($issue->getNumber()) {
-				$issueNode->appendChild($doc->createTextNode($issue->getNumber()));
-			} else {
-				$issueNode->appendChild($doc->createTextNode($this->getIssueInformation($issue, $objectLocalePrecedence)));
-			}
-			$relatedItemNode->appendChild($issueNode);
-
-			$pages = $publication->getPageArray();
-			if (!empty($pages)) {
-				$firstRange = array_shift($pages);
-			$firstPage = array_shift($firstRange);
-				if (count($firstRange)) {
-					// There is a first page and last page for the first range
-					$lastPage = array_shift($firstRange);
-				} else {
-					// There is not a range in the first segment
-					$lastPage = '';
-				}
-				// No punctuation in first_page or last_page
-				if ((!empty($firstPage) || $firstPage === '0') && !preg_match('/[^[:alnum:]]/', $firstPage) && !preg_match('/[^[:alnum:]]/', $lastPage)) {
-					$relatedItemNode->appendChild($node = $doc->createElementNS($deployment->getNamespace(), 'firstPage', $firstPage));
-					if ($lastPage != '') {
-						$relatedItemNode->appendChild($node = $doc->createElementNS($deployment->getNamespace(), 'lastPage', $lastPage));
-					}
-				}
-			}
-
-			$relatedItemsNode->appendChild($relatedItemNode);
-		}
-		return $relatedItemsNode;
-	}
 
 	//
 	// Helper functions

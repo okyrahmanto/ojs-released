@@ -213,7 +213,7 @@ class DOIPubIdPlugin extends PubIdPlugin {
 	 * @copydoc PKPPubIdPlugin::isObjectTypeEnabled()
 	 */
 	function isObjectTypeEnabled($pubObjectType, $contextId) {
-		return (boolean) $this->getSetting($contextId, "enable{$pubObjectType}Doi");
+		return (boolean) $this->getSetting($contextId, "enable${pubObjectType}Doi");
 	}
 
 	/**
@@ -405,7 +405,7 @@ class DOIPubIdPlugin extends PubIdPlugin {
 				'value' => $form->publication->getData('pub-id::doi'),
 				'prefix' => $prefix,
 				'pattern' => $pattern,
-				'contextInitials' => PKPString::regexp_replace('/[^-._;()\/A-Za-z0-9]/', '', PKPString::strtolower($form->submissionContext->getData('acronym', $form->submissionContext->getData('primaryLocale')))) ?? '',
+				'contextInitials' => PKPString::regexp_replace('/[^A-Za-z0-9]/', '', PKPString::strtolower($form->submissionContext->getData('acronym', $form->submissionContext->getData('primaryLocale')))) ?? '',
 				'separator' => '/',
 				'submissionId' => $form->publication->getData('submissionId'),
 				'assignIdLabel' => __('plugins.pubIds.doi.editor.doi.assignDoi'),

@@ -62,10 +62,10 @@ class AnnouncementFeedSettingsForm extends Form {
 	 * Fetch the form.
 	 * @copydoc Form::fetch()
 	 */
-	public function fetch($request, $template = null, $display = false) {
+	public function fetch($request) {
 		$templateMgr = TemplateManager::getManager($request);
 		$templateMgr->assign('pluginName', $this->_plugin->getName());
-		return parent::fetch($request, $template, $display);
+		return parent::fetch($request);
 	}
 
 	/**

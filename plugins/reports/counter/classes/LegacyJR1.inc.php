@@ -12,8 +12,6 @@
  * @brief The Legacy COUNTER JR1 (r3) report
  */
 
-use function PHP81_BC\strftime;
-
 class LegacyJR1 {
 
 	/**

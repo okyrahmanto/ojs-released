@@ -144,8 +144,7 @@ class AnnouncementFeedGatewayPlugin extends GatewayPlugin {
 			'journal' => $journal,
 		));
 
-		$templateMgr->setHeaders(['content-type: ' . $mimeTypeMap[$type] . '; charset=utf-8']);
-		$templateMgr->display($this->_parentPlugin->getTemplateResource($typeMap[$type]));
+		$templateMgr->display($this->_parentPlugin->getTemplateResource($typeMap[$type]), $mimeTypeMap[$type]);
 
 		return true;
 	}

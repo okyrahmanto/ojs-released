@@ -22,10 +22,8 @@
 					{fbvElement type="text" label="plugins.pubIds.doi.manager.settings.doiSuffix" id="doiSuffix" value=$doiSuffix size=$fbvStyles.size.MEDIUM}
 				{/fbvFormSection}
 				{if $canBeAssigned}
-					{if !$formDisabled}
-						{assign var=templatePath value=$pubIdPlugin->getTemplateResource('doiAssignCheckBox.tpl')}
-						{include file=$templatePath pubId="" pubObjectType=$pubObjectType}
-					{/if}
+					{assign var=templatePath value=$pubIdPlugin->getTemplateResource('doiAssignCheckBox.tpl')}
+					{include file=$templatePath pubId="" pubObjectType=$pubObjectType}
 				{else}
 					<p class="pkp_help">{translate key="plugins.pubIds.doi.editor.customSuffixMissing"}</p>
 				{/if}
@@ -36,25 +34,16 @@
 					{capture assign=translatedObjectType}{translate key="plugins.pubIds.doi.editor.doiObjectType"|cat:$pubObjectType}{/capture}
 					{capture assign=assignedMessage}{translate key="plugins.pubIds.doi.editor.assigned" pubObjectType=$translatedObjectType}{/capture}
 					<p class="pkp_help">{$assignedMessage}</p>
-					{if !$formDisabled}
-						{include file="linkAction/linkAction.tpl" action=$clearPubIdLinkActionDoi contextId="publicIdentifiersForm"}
-					{/if}
+					{include file="linkAction/linkAction.tpl" action=$clearPubIdLinkActionDoi contextId="publicIdentifiersForm"}
 				</p>
 				{/fbvFormSection}
 			{/if}
 		{else} {* pub id preview *}
-			{if !$formDisabled}
-				<p>{$pubIdPlugin->getPubId($pubObject)|escape}</p>
-			{/if}
+			<p>{$pubIdPlugin->getPubId($pubObject)|escape}</p>
 			{if $canBeAssigned}
-				{if !$formDisabled}
-					<p class="pkp_help">{translate key="plugins.pubIds.doi.editor.canBeAssigned"}</p>
-					{assign var=templatePath value=$pubIdPlugin->getTemplateResource('doiAssignCheckBox.tpl')}
-					{include file=$templatePath pubId="" pubObjectType=$pubObjectType}
-				{else}
-					<p class="pkp_help">{translate key="plugins.pubIds.doi.editor.noDoiAssigned"}</p>
-				{/if}
-				
+				<p class="pkp_help">{translate key="plugins.pubIds.doi.editor.canBeAssigned"}</p>
+				{assign var=templatePath value=$pubIdPlugin->getTemplateResource('doiAssignCheckBox.tpl')}
+				{include file=$templatePath pubId="" pubObjectType=$pubObjectType}
 			{else}
 				<p class="pkp_help">{translate key="plugins.pubIds.doi.editor.patternNotResolved"}</p>
 			{/if}

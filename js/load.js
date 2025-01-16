@@ -25,7 +25,6 @@ import WorkflowPage from '@/components/Container/WorkflowPageOJS.vue';
 
 // Required by the URN plugin
 import FieldText from '@/components/Form/fields/FieldText.vue';
-import FieldPubId from '@/components/Form/fields/FieldPubId.vue';
 
 // Expose Vue, the registry and controllers in a global var
 window.pkp = Object.assign(PkpLoad, {
@@ -46,4 +45,3 @@ window.pkp = Object.assign(PkpLoad, {
 
 // Required by the URN plugin
 window.pkp.Vue.component('field-text', FieldText);
-window.pkp.Vue.component('field-pub-id', FieldPubId);
