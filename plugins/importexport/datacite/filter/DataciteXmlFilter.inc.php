@@ -169,8 +169,8 @@ class DataciteXmlFilter extends NativeExportFilter {
 			$subjects = (array) $this->getPrimaryTranslation($galleyFile->getData('subject'), $objectLocalePrecedence);
 		} elseif (!empty($article) && !empty($publication)) {
 			$subjects = array_merge(
-				$this->getPrimaryTranslation($publication->getData('keywords'), $objectLocalePrecedence),
-				$this->getPrimaryTranslation($publication->getData('subjects'), $objectLocalePrecedence)
+				(array) $this->getPrimaryTranslation($publication->getData('keywords'), $objectLocalePrecedence),
+				(array) $this->getPrimaryTranslation($publication->getData('subjects'), $objectLocalePrecedence)
 			);
 		}
 		if (!empty($subjects)) {
@@ -441,7 +441,11 @@ class DataciteXmlFilter extends NativeExportFilter {
 			default:
 				assert(false);
 		}
-		if (!empty($resourceType)) {
+		if ($resourceType == 'Article') {
+			// Create the resourceType element.
+			$resourceTypeNode = $doc->createElementNS($deployment->getNamespace(), 'resourceType');
+			$resourceTypeNode->setAttribute('resourceTypeGeneral', 'JournalArticle');
+		} elseif  ($resourceType == 'Journal Issue') {
 			// Create the resourceType element.
 			$resourceTypeNode = $doc->createElementNS($deployment->getNamespace(), 'resourceType', $resourceType);
 			$resourceTypeNode->setAttribute('resourceTypeGeneral', 'Text');

@@ -26,17 +26,22 @@ class ArticleGalleyForm extends Form {
 	/** @var ArticleGalley current galley */
 	var $_articleGalley = null;
 
+	/** @var bool indicates whether the form should be editable */
+	var $_isEditable = true;
+
 	/**
 	 * Constructor.
 	 * @param $submission Submission
 	 * @param $publication Publication
 	 * @param $articleGalley ArticleGalley (optional)
+	 * @param bool $isEditable (optional, default = true)
 	 */
-	function __construct($request, $submission, $publication, $articleGalley = null) {
+	function __construct($request, $submission, $publication, $articleGalley = null, $isEditable = true) {
 		parent::__construct('controllers/grid/articleGalleys/form/articleGalleyForm.tpl');
 		$this->_submission = $submission;
 		$this->_publication = $publication;
 		$this->_articleGalley = $articleGalley;
+		$this->_isEditable = $isEditable;
 
 		AppLocale::requireComponents(LOCALE_COMPONENT_APP_EDITOR, LOCALE_COMPONENT_PKP_SUBMISSION);
 
@@ -79,6 +84,7 @@ class ArticleGalleyForm extends Form {
 			'supportedLocales' => $context->getSupportedSubmissionLocaleNames(),
 			'submissionId' => $this->_submission->getId(),
 			'publicationId' => $this->_publication->getId(),
+			'formDisabled' => !$this->_isEditable
 		));
 
 		return parent::fetch($request, $template, $display);
@@ -103,6 +109,10 @@ class ArticleGalleyForm extends Form {
 					$this->addErrorField('urlPath');
 				}
 			}
+		}
+
+		if (!$this->_isEditable) {
+			$this->addError('', __('galley.cantEditPublished'));
 		}
 
 		return parent::validate($callHooks);

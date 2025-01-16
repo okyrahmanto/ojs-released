@@ -56,20 +56,20 @@ class ArticleGalleyGridRow extends GridRow {
 			$actionArgs = $this->getRequestArgs();
 			$actionArgs['representationId'] = $rowId;
 
+			// Add row-level actions
+			import('lib.pkp.classes.linkAction.request.AjaxModal');
+			$this->addAction(new LinkAction(
+				'editGalley',
+				new AjaxModal(
+					$router->url($request, null, null, 'editGalley', null, $actionArgs),
+					($this->_isEditable)?__('submission.layout.editGalley'):__('submission.layout.viewGalley'),
+					'modal_edit'
+				),
+				($this->_isEditable)?__('grid.action.edit'):__('grid.action.view'),
+				'edit'
+			));
+			
 			if ($this->_isEditable) {
-				// Add row-level actions
-				import('lib.pkp.classes.linkAction.request.AjaxModal');
-				$this->addAction(new LinkAction(
-					'editGalley',
-					new AjaxModal(
-						$router->url($request, null, null, 'editGalley', null, $actionArgs),
-						__('submission.layout.editGalley'),
-						'modal_edit'
-					),
-					__('grid.action.edit'),
-					'edit'
-				));
-
 				$galley = $this->getData();
 				if ($galley->getRemoteUrl() == '') {
 					import('lib.pkp.controllers.api.file.linkAction.AddFileLinkAction');
